@@ -1,0 +1,26 @@
+{
+    "name": "track-any-device/tad101",
+    "description": "TAD101 universal device protocol — driver, controllers, job, and route helpers.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.7",
+        "track-any-device/core": "^0.0.2",
+        "track-any-device/drivers": "*@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "TrackAnyDevice\\Tad101\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TrackAnyDevice\\Tad101\\Tad101ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
