@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace TrackAnyDevice\Tad101\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -14,9 +13,10 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Outbound TAD101 command pushed to a single device over Soketi.
  *
- * Broadcast as `tad101-command` on the per-device private channel
- * `private-tad101.device.{imei}`. The device SDK listens on that channel and
- * is expected to respond with a `command_ack` event referencing `cmd_id`.
+ * 200k capacity model: dropped the `tad101.commands` public discovery
+ * firehose. Cross-tenant debugging now goes through the sampled
+ * `private-admin.device-logs` channel which fires via DeviceLog::out()
+ * when the command is dispatched.
  */
 class Tad101CommandEvent implements ShouldBroadcastNow
 {
@@ -30,13 +30,13 @@ class Tad101CommandEvent implements ShouldBroadcastNow
         public readonly array $params = [],
     ) {}
 
+    /**
+     * @return array<int, PrivateChannel>
+     */
     public function broadcastOn(): array
     {
         return [
             new PrivateChannel('tad101.device.'.$this->imei),
-            // Mirror onto a public discovery channel for admin observability —
-            // useful when debugging commands without per-device auth tokens.
-            new Channel('tad101.commands'),
         ];
     }
 
@@ -45,6 +45,9 @@ class Tad101CommandEvent implements ShouldBroadcastNow
         return 'tad101-command';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         return [
